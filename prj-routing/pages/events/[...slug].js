@@ -6,6 +6,7 @@ import Button from "../../components/UI/button";
 import ErrorAlert from "../../components/UI/error-alert";
 import useSWR from "swr";
 import { useEffect, useState } from "react";
+import Head from "next/head";
 
 const fetcher = async (url) => {
   try {
@@ -43,12 +44,31 @@ const FilteredEventsPage = (props) => {
     }
   }, [data, error]);
 
+  let pageHeadData = (
+    <Head>
+      <title>Filtered Events</title>
+      <meta name='description' content='A list of filtered events' />
+    </Head>
+  );
+
   if (!events) {
-    return <p className='center'>...Loading</p>;
+    return (
+      <>
+        {pageHeadData}
+        <p className='center'>...Loading</p>
+      </>
+    );
   }
 
   const year = filterData[0] * 1;
   const month = filterData[1] * 1;
+
+  pageHeadData = (
+    <Head>
+      <title>Filtered Events</title>
+      <meta name='description' content={`All events for ${year}/${month}`} />
+    </Head>
+  );
 
   if (
     isNaN(year) ||
@@ -60,6 +80,7 @@ const FilteredEventsPage = (props) => {
   ) {
     return (
       <>
+        {pageHeadData}
         <ErrorAlert>
           <p className='center'>Invalid Filter</p>
         </ErrorAlert>
@@ -78,6 +99,7 @@ const FilteredEventsPage = (props) => {
   if (!filteredEvents || filteredEvents.length === 0) {
     return (
       <>
+        {pageHeadData}
         <ErrorAlert>
           <p className='center'>No events found for the chosen filter</p>
         </ErrorAlert>
@@ -92,6 +114,7 @@ const FilteredEventsPage = (props) => {
 
   return (
     <>
+      {pageHeadData}
       <ResultsTitle date={date} />
       <EventList events={filteredEvents} />
     </>

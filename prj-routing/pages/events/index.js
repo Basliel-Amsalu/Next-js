@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import EventList from "../../components/events/event-list";
 import EventsSearch from "../../components/events/events-search";
 import "../../dummy-data";
+import Head from "next/head";
 import { getAllEvents } from "../../helpers/api-utils";
 const AllEventsPage = (props) => {
   const router = useRouter();
@@ -11,10 +12,17 @@ const AllEventsPage = (props) => {
     router.push(fullPath);
   };
   return (
-    <div>
+    <>
+      <Head>
+        <title>All events</title>
+        <meta
+          name='description'
+          content='Find a lot of great events that will allow you to better your self'
+        />
+      </Head>
       <EventsSearch onSearch={onSearch} />
       <EventList events={props.events} />
-    </div>
+    </>
   );
 };
 
