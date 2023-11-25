@@ -1,5 +1,9 @@
 import { useRouter } from "next/router";
-import { getEventById } from "../../helpers/api-utils";
+import {
+  getAllEvents,
+  getEventById,
+  getFeaturedEvents,
+} from "../../helpers/api-utils";
 import EventSummary from "../../components/event-detail/event-summary";
 import EventLogistics from "../../components/event-detail/event-logistics";
 import EventContent from "../../components/event-detail/event-content";
@@ -11,9 +15,9 @@ const EventDetailPage = (props) => {
   const { event } = props;
   if (!event) {
     return (
-      <ErrorAlert>
-        <p>No such event</p>
-      </ErrorAlert>
+      <div className='center'>
+        <p>Loading...</p>
+      </div>
     );
   }
   return (
@@ -32,7 +36,7 @@ const EventDetailPage = (props) => {
   );
 };
 
-export async function getServerSideProps(context) {
+export async function getStaticProps(context) {
   const { params } = context;
 
   const event = await getEventById(params.id);
@@ -41,6 +45,20 @@ export async function getServerSideProps(context) {
     props: {
       event,
     },
+    revalidate: 30,
+  };
+}
+
+export async function getStaticPaths() {
+  const events = await getFeaturedEvents();
+  const paths = events.map((event) => {
+    return {
+      params: { id: event.id },
+    };
+  });
+  return {
+    paths: paths,
+    fallback: "blocking",
   };
 }
 

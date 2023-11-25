@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import EventList from "../../components/events/event-list";
 import EventsSearch from "../../components/events/events-search";
 import "../../dummy-data";
-import { getAllEvents } from "../../dummy-data";
+import { getAllEvents } from "../../helpers/api-utils";
 const AllEventsPage = (props) => {
   const router = useRouter();
 
@@ -18,26 +18,14 @@ const AllEventsPage = (props) => {
   );
 };
 
-export async function getServerSideProps(context) {
-  const response = await fetch(
-    "https://nextjs-a0910-default-rtdb.firebaseio.com/events.json"
-  );
-  const data = await response.json();
-
-  const transformedEvents = Object.keys(data).map((key) => ({
-    id: key,
-    title: data[key].title,
-    description: data[key].description,
-    date: data[key].date,
-    location: data[key].location,
-    image: data[key].image,
-    isFeatured: data[key].isFeatured,
-  }));
+export async function getStaticProps() {
+  const allEvents = await getAllEvents();
 
   return {
     props: {
-      events: transformedEvents,
+      events: allEvents,
     },
+    revalidate: 60,
   };
 }
 
