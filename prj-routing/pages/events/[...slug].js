@@ -1,11 +1,11 @@
 import { useRouter } from "next/router";
-import { getFilteredEvents } from "../../dummy-data";
+import { getFilteredEvents } from "../../helpers/api-utils";
 import EventList from "../../components/events/event-list";
 import ResultsTitle from "../../components/events/results-title";
 import Button from "../../components/UI/button";
 import ErrorAlert from "../../components/UI/error-alert";
 
-const FilteredEventsPage = () => {
+const FilteredEventsPage = (props) => {
   const router = useRouter();
   console.log(router.query);
   const filterData = router.query.slug;
@@ -30,7 +30,7 @@ const FilteredEventsPage = () => {
     );
   }
 
-  const events = getFilteredEvents({ year, month });
+  const { events } = props;
 
   if (!events || events.length === 0) {
     return (
@@ -54,4 +54,21 @@ const FilteredEventsPage = () => {
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { slug } = context.params;
+  console.log(slug);
+  const year = slug[0];
+  const month = slug[1];
+
+  let filteredEvents = await getFilteredEvents({ year, month });
+
+  console.log(filteredEvents);
+  return {
+    props: {
+      events: filteredEvents,
+    },
+  };
+}
+
 export default FilteredEventsPage;

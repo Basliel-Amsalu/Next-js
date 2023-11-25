@@ -1,14 +1,14 @@
 import { useRouter } from "next/router";
-import { getEventById } from "../../dummy-data";
+import { getEventById } from "../../helpers/api-utils";
 import EventSummary from "../../components/event-detail/event-summary";
 import EventLogistics from "../../components/event-detail/event-logistics";
 import EventContent from "../../components/event-detail/event-content";
 import ErrorAlert from "../../components/UI/error-alert";
 
-const EventDetailPage = () => {
-  const router = useRouter();
-  const event = getEventById(router.query.id);
-
+const EventDetailPage = (props) => {
+  // const router = useRouter();
+  // const event = getEventById(router.query.id);
+  const { event } = props;
   if (!event) {
     return (
       <ErrorAlert>
@@ -31,5 +31,17 @@ const EventDetailPage = () => {
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { params } = context;
+
+  const event = await getEventById(params.id);
+
+  return {
+    props: {
+      event,
+    },
+  };
+}
 
 export default EventDetailPage;
