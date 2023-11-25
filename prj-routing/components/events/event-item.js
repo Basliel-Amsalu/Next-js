@@ -1,5 +1,6 @@
 import classes from "./event-item.module.css";
 import Button from "../UI/button";
+import Image from "next/image";
 import DateIcon from "../icons/date-icon";
 import AddressIcon from "../icons/address-icon";
 import ArrowRightIcon from "../icons/arrow-right-icon";
@@ -17,7 +18,13 @@ const EventItem = (props) => {
   const exploreLink = `/events/${props.event.id}`;
   return (
     <li className={classes.item}>
-      <img src={"/" + props.event.image} alt={props.event.title} />
+      <Image
+        src={"/" + props.event.image}
+        alt={props.event.title}
+        width={250}
+        height={160}
+      />
+      {/* <img src={"/" + props.event.image} alt={props.event.title} /> */}
       <div className={classes.content}>
         <div className={classes.summary}>
           <h2>{props.event.title}</h2>
