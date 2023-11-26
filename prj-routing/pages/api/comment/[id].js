@@ -1,42 +1,71 @@
-import fs from "fs";
-import path from "path";
-import { extractFeedback } from "../newsletter";
+import {
+  connectDatabase,
+  getDocuments,
+  inserDocument,
+} from "../../../helpers/db-util";
 
-export function buildCommentPath() {
-  return path.join(process.cwd(), "data", "comment.json");
-}
+const handler = async (req, res) => {
+  let client;
+  try {
+    client = await connectDatabase();
+  } catch (error) {
+    res.status(500).json({
+      message: "connecting to the database failed",
+    });
 
-const handler = (req, res) => {
+    return;
+  }
+
   if (req.method === "POST") {
-    const email = req.body.email;
-    const name = req.body.name;
-    const comment = req.body.comment;
+    const { email, name, comment } = req.body;
+
+    if (
+      !email.includes("@") ||
+      !name ||
+      name.trim() === "" ||
+      !comment.trim() === ""
+    ) {
+      res.status(422).json({ message: "Invalid input" });
+      client.close();
+      return;
+    }
 
     const newComment = {
-      id: new Date().toISOString(),
       eventId: req.query.id,
       email,
       name,
       comment,
     };
 
-    const filePath = buildCommentPath();
-    const data = extractFeedback(filePath);
-    data.push(newComment);
-    fs.writeFileSync(filePath, JSON.stringify(data));
+    let result;
+    try {
+      result = await inserDocument(client, "comments", newComment);
+      client.close();
+    } catch (error) {
+      res.status(500).json({
+        message: "inserting data failed",
+      });
+      return;
+    }
+
+    newComment._id = result.insertedId;
     res.status(201).json({
       newComment,
     });
   } else {
-    const filePath = buildCommentPath();
-    const data = extractFeedback(filePath);
-    console.log(data);
-    const comments = data.filter((comment) => comment.eventId === req.query.id);
-    console.log(comments);
-    res.status(200).json({
-      comment: comments,
-    });
+    let comments;
+    try {
+      comments = await getDocuments(client, "comments", { _id: -1 });
+      res.status(200).json({
+        comment: comments,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "loading data failed",
+      });
+    }
   }
+  client.close();
 };
 
 export default handler;

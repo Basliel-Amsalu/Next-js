@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import CommentList from "./comment-list";
 import NewComment from "./new-comment";
@@ -6,8 +6,27 @@ import classes from "./comments.module.css";
 
 function Comments(props) {
   const { eventId } = props;
+  const [comments, setComments] = useState([]);
 
   const [showComments, setShowComments] = useState(false);
+
+  useEffect(() => {
+    if (showComments) {
+      const loadComments = async () => {
+        const response = await fetch(`/api/comment/${eventId}`);
+        const data = await response.json();
+        console.log(data);
+        return data;
+      };
+
+      const fetchData = async () => {
+        const data = await loadComments();
+        console.log(data);
+        setComments(data.comment);
+      };
+      fetchData();
+    }
+  }, [showComments]);
 
   function toggleCommentsHandler() {
     setShowComments((prevStatus) => !prevStatus);
@@ -36,7 +55,7 @@ function Comments(props) {
         {showComments ? "Hide" : "Show"} Comments
       </button>
       {showComments && <NewComment onAddComment={addCommentHandler} />}
-      {showComments && <CommentList id={eventId} />}
+      {showComments && <CommentList comments={comments} />}
     </section>
   );
 }

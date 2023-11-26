@@ -1,18 +1,6 @@
-import fs from "fs";
-import path from "path";
+import { connectDatabase, inserDocument } from "../../helpers/db-util";
 
-export function buildFeedbackPath() {
-  return path.join(process.cwd(), "data", "feedback.json");
-}
-
-export function extractFeedback(filePath) {
-  const fileData = fs.readFileSync(filePath);
-
-  const data = JSON.parse(fileData);
-  return data;
-}
-
-const handler = (req, res) => {
+const handler = async (req, res) => {
   if (req.method === "POST") {
     const email = req.body.email;
 
@@ -22,16 +10,28 @@ const handler = (req, res) => {
       });
       return;
     }
-
     const newfile = {
-      id: new Date().toISOString(),
       email,
     };
+    let client;
+    try {
+      client = await connectDatabase();
+    } catch (error) {
+      res.status(500).json({
+        message: "connecting to the database failed",
+      });
+      return;
+    }
+    try {
+      await inserDocument(client, "newsletter", newfile);
+      client.close();
+    } catch (error) {
+      res.status(500).json({
+        message: "inserting data failed",
+      });
+      return;
+    }
 
-    const filePath = buildFeedbackPath();
-    const data = extractFeedback(filePath);
-    data.push(newfile);
-    fs.writeFileSync(filePath, JSON.stringify(data));
     res.status(201).json({
       newfile,
     });
