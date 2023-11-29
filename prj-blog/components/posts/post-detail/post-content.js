@@ -1,22 +1,49 @@
 import PostHeader from "./post-header";
 import ReactMarkdown from "react-markdown";
 import classes from "./post-content.module.css";
+import Image from "next/image";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
-const DUMMY_POST = {
-  slug: "getting-started-with-nextjs",
-  title: "Getting started with nextjs",
-  image: "getting-started-nextjs.png",
-  date: "2022-02-10", 
-  content: "# This is a first post",
-};
+const PostContent = (props) => {
+  const { post } = props;
+  const imagePath = `/images/posts/${post.slug}/${post.image}`;
 
-const PostContent = () => {
-  const imagePath = `/images/posts/${DUMMY_POST.slug}/${DUMMY_POST.image}`;
+  const customComponents = {
+    img: ({ node, ...props }) => (
+      <div className={classes.image}>
+        <Image
+          src={`/images/posts/${post.slug}/${props.src}`}
+          alt={props.alt}
+          width={600}
+          height={300}
+        />
+      </div>
+    ),
+    code: ({ node, inline, className, children, ...props }) => {
+      const language = className?.replace("language-", "") || "";
+
+      if (inline) {
+        // Render inline code as regular text
+        return <code>{children}</code>;
+      }
+
+      return (
+        <SyntaxHighlighter style={atomDark} language={language} showLineNumbers>
+          {String(children).trim()}
+        </SyntaxHighlighter>
+      );
+    },
+  };
+
   return (
     <article className={classes.content}>
-      <PostHeader title={DUMMY_POST.title} image={imagePath} />
-      <ReactMarkdown>{DUMMY_POST.content}</ReactMarkdown>
+      <PostHeader title={post.title} image={imagePath} />
+      <ReactMarkdown components={customComponents}>
+        {post.content}
+      </ReactMarkdown>
     </article>
   );
 };
+
 export default PostContent;
